@@ -25,31 +25,30 @@ import me.clip.placeholderapi.expansion.Cacheable;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import com.wasteofplastic.askyblock.ASkyBlock;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
-import com.wasteofplastic.askyblock.Island;
-import com.wasteofplastic.askyblock.Players;
 
 public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheable {
-	
+
 	private ASkyBlockAPI api;
-	
+
 	private ASkyBlock askyblock;
-	
+
 	@Override
 	public boolean canRegister() {
 		return Bukkit.getPluginManager().getPlugin(getPlugin()) != null;
 	}
-	
+
 	@Override
 	public boolean register() {
 		askyblock = ASkyBlock.getPlugin();
-		if (askyblock == null) return false;
+		if (askyblock == null)
+			return false;
 		api = ASkyBlockAPI.getInstance();
-		if (api != null) return super.register();
+		if (api != null)
+			return super.register();
 		return false;
 	}
 
@@ -70,7 +69,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 
 	@Override
 	public String getVersion() {
-		return "1.2.1";
+		return "1.2.2";
 	}
 
 	@SuppressWarnings("deprecation")
@@ -80,14 +79,13 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 		if (api == null || p == null) {
 			return "";
 		}
-		
-		
-		
+
 		switch (identifier) {
 		case "level":
 			return String.valueOf(api.getIslandLevel(p.getUniqueId()));
 		case "has_island":
-			return api.hasIsland(p.getUniqueId()) ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
+			return api.hasIsland(p.getUniqueId()) ? PlaceholderAPIPlugin.booleanTrue()
+					: PlaceholderAPIPlugin.booleanFalse();
 		case "island_x":
 			return String.valueOf(api.getIslandLocation(p.getUniqueId()).getBlockX());
 		case "island_y":
@@ -97,15 +95,14 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 		case "island_world":
 			return api.getIslandLocation(p.getUniqueId()).getWorld().getName();
 		case "team_size":
-			return api.getTeamMembers(p.getUniqueId()) != null ? 
-					String.valueOf(api.getTeamMembers(p.getUniqueId()).size()) : "0";
+			return api.getTeamMembers(p.getUniqueId()) != null
+					? String.valueOf(api.getTeamMembers(p.getUniqueId()).size()) : "0";
 		case "coop_islands":
-			return api.getCoopIslands(p) != null ? 
-					String.valueOf(api.getCoopIslands(p).size()) : "0";
-			case "owner":
-				if (api.getOwner(p.getLocation()) == null) {
-					return "";
-				}
+			return api.getCoopIslands(p) != null ? String.valueOf(api.getCoopIslands(p).size()) : "0";
+		case "owner":
+			if (api.getOwner(p.getLocation()) == null) {
+				return "";
+			}
 			return Bukkit.getOfflinePlayer(api.getOwner(p.getLocation())).getName();
 		}
 		return null;
@@ -115,5 +112,5 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 	public void clear() {
 		askyblock = null;
 		api = null;
-	}	
+	}
 }
