@@ -25,6 +25,7 @@ import me.clip.placeholderapi.expansion.Cacheable;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import com.wasteofplastic.askyblock.ASkyBlock;
@@ -101,11 +102,11 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 		case "coop_islands":
 			return api.getCoopIslands(p) != null ? 
 					String.valueOf(api.getCoopIslands(p).size()) : "0";
-		case "owner_at_location":
-			Island is = api.getIslandAt(p.getLocation());
-			if (is == null) return "";
-			Players pl = askyblock.getPlayers().get(is.getOwner());
-			return pl != null ? pl.getPlayerName() : "";
+			case "owner":
+				if (api.getOwner(p.getLocation()) == null) {
+					return "";
+				}
+			return Bukkit.getOfflinePlayer(api.getOwner(p.getLocation())).getName();
 		}
 		return null;
 	}
