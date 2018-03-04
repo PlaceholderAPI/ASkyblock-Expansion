@@ -28,11 +28,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
+import com.wasteofplastic.askyblock.ASkyBlock;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
+import com.wasteofplastic.askyblock.Island;
+import com.wasteofplastic.askyblock.Players;
 
 public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheable {
 	
 	private ASkyBlockAPI api;
+	
+	private ASkyBlock askyblock;
 	
 	@Override
 	public boolean canRegister() {
@@ -41,6 +46,8 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 	
 	@Override
 	public boolean register() {
+		askyblock = ASkyBlock.getPlugin();
+		if (askyblock == null) return false;
 		api = ASkyBlockAPI.getInstance();
 		if (api != null) return super.register();
 		return false;
@@ -63,7 +70,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 
 	@Override
 	public String getVersion() {
-		return "1.2.0";
+		return "1.2.1";
 	}
 
 	@SuppressWarnings("deprecation")
@@ -74,8 +81,9 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 			return "";
 		}
 		
-		switch (identifier) {
 		
+		
+		switch (identifier) {
 		case "level":
 			return String.valueOf(api.getIslandLevel(p.getUniqueId()));
 		case "has_island":
@@ -100,12 +108,12 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 				}
 			return Bukkit.getOfflinePlayer(api.getOwner(p.getLocation())).getName();
 		}
-		
 		return null;
 	}
 
 	@Override
 	public void clear() {
+		askyblock = null;
 		api = null;
 	}	
 }
