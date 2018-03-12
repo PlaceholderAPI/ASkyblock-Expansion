@@ -19,6 +19,11 @@
             <id>clips-public-repo</id>
             <url>http://repo.extendedclip.com/content/repositories/public/</url>
         </repository>
+        <repository>
+            <id>bintray-tastybento-maven-repo</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/tastybento/maven-repo</url>
+        </repository>
     </repositories>
     
     <dependencies>
