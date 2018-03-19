@@ -104,7 +104,16 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 				return "";
 			}
 			return Bukkit.getOfflinePlayer(api.getOwner(p.getLocation())).getName();
+		case "team_leader":
+			if(!api.inTeam(p.getUniqueId())){
+				return "";
+			}
+			return Bukkit.getOfflinePlayer(api.getTeamLeader(p.getUniqueId())).getName();
+        case "has_team":
+            return api.inTeam(p.getUniqueId()) ? PlaceholderAPIPlugin.booleanTrue()
+                    : PlaceholderAPIPlugin.booleanFalse();
 		}
+
 		return null;
 	}
 
