@@ -156,6 +156,8 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 											return String.valueOf(location.getBlockY());
 										case "z":
 											return String.valueOf(location.getBlockZ());
+										case "world":
+											return String.valueOf(location.getWorld().getName());
 									}
 								}
 							}
