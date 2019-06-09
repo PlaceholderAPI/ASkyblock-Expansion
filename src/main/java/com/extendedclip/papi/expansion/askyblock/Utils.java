@@ -23,17 +23,28 @@ package com.extendedclip.papi.expansion.askyblock;
 
 import org.bukkit.entity.Player;
 
+import java.text.NumberFormat;
 import java.util.*;
 
 public class Utils {
 
     private ASkyBlockExpansion ex;
+
+    private String k, m, b, t, q;
+    private int digit;
+
     public Utils(ASkyBlockExpansion ex) {
+        digit = ex.getInt("formatting.digits", 2);
+        k = ex.getString("formatting.thousands", "k");
+        m = ex.getString("formatting.millions", "M");
+        b = ex.getString("formatting.billions", "B");
+        t = ex.getString("formatting.trillions", "T");
+        q = ex.getString("formatting.quadrillions", "Q");
         this.ex = ex;
     }
 
 
-    public Map<UUID, Long> getMapIslandOwner() {
+    private Map<UUID, Long> getMapIslandOwner() {
         final Map<UUID, Long> mapIslandOwner = new HashMap<UUID, Long>();
 
         for (UUID ownerID : ex.askyblock.getGrid().getOwnershipMap().keySet()) {
@@ -69,15 +80,15 @@ public class Utils {
         return index < listSortIslandOwner.size() ? listSortIslandOwner.get(index) : null;
     }
 
-    public List<Map.Entry<UUID, Long>> getSortIslandOwner() {
+    private List<Map.Entry<UUID, Long>> getSortIslandOwner() {
         return sortMap(getMapIslandOwner());
     }
 
-    public List<Map.Entry<UUID, Long>> sortMap(Map<UUID, Long> unsortMap) {
+    private List<Map.Entry<UUID, Long>> sortMap(Map<UUID, Long> unsortMap) {
         return sortMap(unsortMap, true);
     }
 
-    public List<Map.Entry<UUID, Long>> sortMap(Map<UUID, Long> unsortMap, boolean ascend) {
+    private List<Map.Entry<UUID, Long>> sortMap(Map<UUID, Long> unsortMap, boolean ascend) {
         if (unsortMap != null) {
             final List<Map.Entry<UUID, Long>> list = new LinkedList<Map.Entry<UUID, Long>>(unsortMap.entrySet());
             final Comparator<Map.Entry<UUID, Long>> comparator = new Comparator<Map.Entry<UUID, Long>>() {
@@ -97,5 +108,33 @@ public class Utils {
         }
 
         return null;
+    }
+
+    public String getFormatted(double level) {
+
+        NumberFormat format = NumberFormat.getInstance(Locale.ENGLISH);
+        format.setMaximumFractionDigits(digit);
+        format.setMinimumFractionDigits(0);
+
+        if (level < 1000) {
+            return format.format(level);
+        }
+        if (level < 1000000) {
+            return format.format(level / 1000) + k;
+        }
+        if (level < 1000000000) {
+            return format.format(level / 1000000) + m;
+        }
+        if (level < 1000000000000L) {
+            return format.format(level / 1000000000) + b;
+        }
+        if (level < 1000000000000000L) {
+            return format.format(level / 1000000000000L) + t;
+        }
+        if (level < 1000000000000000000L) {
+            return format.format(level / 1000000000000000L) + q;
+        }
+
+        return String.valueOf(level);
     }
 }

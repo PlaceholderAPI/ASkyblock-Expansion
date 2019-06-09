@@ -216,6 +216,8 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 				switch (identifier) {
 					case "level":
 						return String.valueOf(askyblock.getPlayers().getIslandLevel(playerID));
+                    case "level_formatted":
+                        return utils.getFormatted(askyblock.getPlayers().getIslandLevel(playerID));
 					case "has_island":
 						return askyblock.getPlayers().hasIsland(playerID) ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
 					case "team_size":
