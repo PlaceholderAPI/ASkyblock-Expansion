@@ -75,7 +75,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 
 	@Override
 	public String getVersion() {
-		return "2.0";
+		return "2.1";
 	}
 
 	@Override
