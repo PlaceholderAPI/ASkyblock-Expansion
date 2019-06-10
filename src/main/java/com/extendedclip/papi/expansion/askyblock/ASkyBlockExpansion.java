@@ -23,16 +23,10 @@ package com.extendedclip.papi.expansion.askyblock;
 
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import me.clip.placeholderapi.expansion.Cacheable;
+import me.clip.placeholderapi.expansion.Configurable;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
@@ -45,9 +39,11 @@ import com.wasteofplastic.askyblock.ASkyBlock;
 import com.wasteofplastic.askyblock.CoopPlay;
 import com.wasteofplastic.askyblock.Settings;
 
-public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheable {
+public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheable, Configurable {
 
-	private ASkyBlock askyblock;
+	public ASkyBlock askyblock;
+
+	private Utils utils = new Utils(this);
 
 	@Override
 	public boolean canRegister() {
@@ -59,7 +55,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 		
 		this.askyblock = ASkyBlock.getPlugin();
 		
-		return this.askyblock != null ? super.register() : false;
+		return this.askyblock != null && super.register();
 	}
 
 	@Override
@@ -79,7 +75,19 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 
 	@Override
 	public String getVersion() {
-		return "2.0";
+		return "2.1";
+	}
+
+	@Override
+	public Map<String, Object> getDefaults() {
+		Map<String, Object> defaults = new HashMap<String, Object>();
+		defaults.put("formatting.digits", 2);
+		defaults.put("formatting.thousands", "k");
+		defaults.put("formatting.millions", "M");
+		defaults.put("formatting.billions", "B");
+		defaults.put("formatting.trillions", "T");
+		defaults.put("formatting.quadrillions", "Q");
+		return defaults;
 	}
 
 	@Override
@@ -92,7 +100,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 				
 				if (key.equalsIgnoreCase("top")) {
 					if (parts.length == 1) {
-						final Integer playerTop = getPlayerTop(player);
+						final Integer playerTop = utils.getPlayerTop(player);
 						
 						if (playerTop != null) {
 							return String.valueOf(playerTop);
@@ -105,7 +113,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 						
 						if (NumberUtils.isNumber(textRank)) {
 							final int rank = Integer.valueOf(textRank);
-							final Map.Entry<UUID, Long> entry = getEntryTopIslandOwner(rank-1);
+							final Map.Entry<UUID, Long> entry = utils.getEntryTopIslandOwner(rank-1);
 							
 							if (entry != null) {
 								if (data.equalsIgnoreCase("level")) {
@@ -128,119 +136,125 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 			
 			if (player != null) {
 				final UUID playerID = player.getUniqueId();
-				
-				if (identifier.equalsIgnoreCase("level")) {
-					return String.valueOf(askyblock.getPlayers().getIslandLevel(playerID));
-				} else if (identifier.equalsIgnoreCase("has_island")) {
-					return askyblock.getPlayers().hasIsland(playerID) ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
-				} else if (identifier.equalsIgnoreCase("team_size")) {
-					final List<UUID> members = askyblock.getPlayers().getMembers(playerID);
-					final int size = members != null ? members.size() : 0;
-					
-					return String.valueOf(size);
-				} else if (identifier.equalsIgnoreCase("coop_islands")) {
-					final Set<Location> coopIslands = CoopPlay.getInstance().getCoopIslands(player);
-					final int size = coopIslands != null ? coopIslands.size() : 0; 
-					
-					return String.valueOf(size);
-				} else if (identifier.equalsIgnoreCase("owner")) {
-					final Location location = player.getLocation();
-					final UUID ownerID = askyblock.getPlayers().getPlayerFromIslandLocation(location);
-					
-					if (ownerID != null) {
-						final OfflinePlayer owner = Bukkit.getOfflinePlayer(ownerID); 
-						
-						if (owner != null) {
-							return owner.getName();
-						}
-					}
-					
-					return "";
-				} else if (identifier.equalsIgnoreCase("team_leader")) {
-					final UUID leaderID = askyblock.getPlayers().getTeamLeader(playerID);
-					
-					if (leaderID != null) {
-						final OfflinePlayer leader = Bukkit.getOfflinePlayer(leaderID);
-						
-						if (leader != null) {
-							return leader.getName();
-						}
-					}
-					
-					return "";
-				} else if (identifier.equalsIgnoreCase("has_team")) {
-					return askyblock.getPlayers().inTeam(playerID) ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
-				} else if (parts.length > 0) {
+				final int size;
+
+				if (parts.length > 0) {
 					final String key = parts[0];
-					
-					if (key.equalsIgnoreCase("island")) {
-						final Location location = askyblock.getPlayers().getIslandLocation(playerID);
-						
-						if (location != null) {
-							if (parts.length > 1) {
-								final String data = parts[1];
-								
-								if (data.equalsIgnoreCase("x")) {
-									return String.valueOf(location.getBlockX());
-								} else if (data.equalsIgnoreCase("y")) {
-									return String.valueOf(location.getBlockY());
-								} else if (data.equalsIgnoreCase("z")) {
-									return String.valueOf(location.getBlockZ());
+
+					switch (key) {
+						case "island":
+							final Location location = askyblock.getPlayers().getIslandLocation(playerID);
+
+							if (location != null) {
+								if (parts.length > 1) {
+									final String data = parts[1];
+
+									switch (data) {
+										case "x":
+											return String.valueOf(location.getBlockX());
+										case "y":
+											return String.valueOf(location.getBlockY());
+										case "z":
+											return String.valueOf(location.getBlockZ());
+										case "world":
+											return String.valueOf(location.getWorld().getName());
+									}
 								}
 							}
-						}
-					} else if (key.equalsIgnoreCase("members")) {
-						if (parts.length > 1) {
-							final String data = parts[1];
-							
-							if (data.equalsIgnoreCase("max")) {
-								
-								int maxTeam = Settings.maxTeamSize;
-								
-								if (!player.hasPermission("askyblock.team.maxsize.*")) {
-									for (PermissionAttachmentInfo perms : player.getEffectivePermissions()) {
-										if (perms.getPermission().startsWith("askyblock.team.maxsize.")) {
-											final String[] components = perms.getPermission().split("askyblock.team.maxsize.");
-											
-											if (components.length > 1) {
-												final String textValue = components[1];
-												
-												if (NumberUtils.isNumber(textValue)) {
-													maxTeam = Math.max(maxTeam, Integer.valueOf(textValue));
+						case "members":
+							if (parts.length > 1) {
+								final String data = parts[1];
+								switch (data) {
+									case "max":
+										int maxTeam = Settings.maxTeamSize;
+
+										if (!player.hasPermission("askyblock.team.maxsize.*")) {
+											for (PermissionAttachmentInfo perms : player.getEffectivePermissions()) {
+												if (perms.getPermission().startsWith("askyblock.team.maxsize.")) {
+													final String[] components = perms.getPermission().split("askyblock.team.maxsize.");
+
+													if (components.length > 1) {
+														final String textValue = components[1];
+
+														if (NumberUtils.isNumber(textValue)) {
+															maxTeam = Math.max(maxTeam, Integer.valueOf(textValue));
+														}
+													}
 												}
 											}
 										}
-									}
-								}
-								
-								if (maxTeam < 1) {
-									maxTeam = 1;
-								}
-								
-								return String.valueOf(maxTeam);
-							} else if (data.equalsIgnoreCase("online")) {
-								if (askyblock.getPlayers().inTeam(playerID)) {
-									final List<UUID> members = askyblock.getPlayers().getMembers(playerID);
-									
-									int count = 0;
-									
-									if (members != null) {
-										for (UUID member : members) {
-											final Player online = Bukkit.getPlayer(member);
-											
-											if (online != null) {
-												count++;
-											}
+
+										if (maxTeam < 1) {
+											maxTeam = 1;
 										}
-									}
-									
-									return String.valueOf(count);
-								} else {
-									return String.valueOf(1);
+
+										return String.valueOf(maxTeam);
+									case "online":
+										if (askyblock.getPlayers().inTeam(playerID)) {
+											final List<UUID> members = askyblock.getPlayers().getMembers(playerID);
+
+											int count = 0;
+
+											if (members != null) {
+												for (UUID member : members) {
+													final Player online = Bukkit.getPlayer(member);
+
+													if (online != null) {
+														count++;
+													}
+												}
+											}
+
+											return String.valueOf(count);
+										} else {
+											return String.valueOf(1);
+										}
 								}
 							}
-						}
 					}
+				}
+				switch (identifier) {
+					case "level":
+						return String.valueOf(askyblock.getPlayers().getIslandLevel(playerID));
+                    case "level_formatted":
+                        return utils.getFormatted(askyblock.getPlayers().getIslandLevel(playerID));
+					case "has_island":
+						return askyblock.getPlayers().hasIsland(playerID) ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
+					case "team_size":
+						List<UUID> members = askyblock.getPlayers().getMembers(playerID);
+						size = members != null ? members.size() : 0;
+
+						return String.valueOf(size);
+					case "coop_islands":
+						Set<Location> coopIslands = CoopPlay.getInstance().getCoopIslands(player);
+						size = coopIslands != null ? coopIslands.size() : 0;
+
+						return String.valueOf(size);
+					case "owner":
+						final Location location = player.getLocation();
+						final UUID ownerID = askyblock.getPlayers().getPlayerFromIslandLocation(location);
+
+						if (ownerID != null) {
+							final OfflinePlayer owner = Bukkit.getOfflinePlayer(ownerID);
+
+							if (owner != null) {
+								return owner.getName();
+							}
+						}
+						return "";
+					case "team_leader":
+						final UUID leaderID = askyblock.getPlayers().getTeamLeader(playerID);
+
+						if (leaderID != null) {
+							final OfflinePlayer leader = Bukkit.getOfflinePlayer(leaderID);
+
+							if (leader != null) {
+								return leader.getName();
+							}
+						}
+						return "";
+					case "has_team":
+						return askyblock.getPlayers().inTeam(playerID) ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
 				}
 			}
 		}
@@ -252,70 +266,4 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 	public void clear() {
 		askyblock = null;
 	}
-	
-	private final Map<UUID, Long> getMapIslandOwner() {
-		final Map<UUID, Long> mapIslandOwner = new HashMap<UUID, Long>();
-		
-		for (UUID ownerID : askyblock.getGrid().getOwnershipMap().keySet()) {
-			final long level = askyblock.getPlayers().getIslandLevel(ownerID);
-			
-			mapIslandOwner.put(ownerID, level);
-		}
-		
-		return mapIslandOwner;
-	}
-	
-	private final Integer getPlayerTop(Player player) {
-		if (player != null) {
-			final UUID playerID = player.getUniqueId();
-			final List<Map.Entry<UUID, Long>> listSortIslandOwner = getSortIslandOwner();
-			
-			for (int index = 0; index < listSortIslandOwner.size(); index++) {
-				final Map.Entry<UUID, Long> entry = listSortIslandOwner.get(index);
-				final UUID entryOwnerID = entry.getKey();
-				
-				if (entryOwnerID.equals(playerID)) {
-					return index + 1;
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	private final Map.Entry<UUID, Long> getEntryTopIslandOwner(int index) {
-		final List<Map.Entry<UUID, Long>> listSortIslandOwner = getSortIslandOwner();
-		
-		return index < listSortIslandOwner.size() ? listSortIslandOwner.get(index) : null;
-	}
-	
-	private final List<Map.Entry<UUID, Long>> getSortIslandOwner() {
-		return sortMap(getMapIslandOwner());
-	}
-	
-	private final List<Map.Entry<UUID, Long>> sortMap(Map<UUID, Long> unsortMap) {
-		return sortMap(unsortMap, true);
-	}
-	
-	private final List<Map.Entry<UUID, Long>> sortMap(Map<UUID, Long> unsortMap, boolean ascend) {
-		if (unsortMap != null) {
-	        final List<Map.Entry<UUID, Long>> list = new LinkedList<Map.Entry<UUID, Long>>(unsortMap.entrySet());
-	        final Comparator<Map.Entry<UUID, Long>> comparator = new Comparator<Map.Entry<UUID, Long>>() {
-	        	
-	        	@Override
-	            public int compare(Map.Entry<UUID, Long> map1, Map.Entry<UUID, Long> map2) {
-	        		final Long value1 = map1.getValue();
-	        		final Long value2 = map2.getValue();
-	        		
-	                return ascend ? value1.compareTo(value2) : value2.compareTo(value1);
-	            }
-	        };
-	        
-	        Collections.sort(list, comparator);
-	        
-	        return list;
-		}
-		
-		return null;
-    }
 }
