@@ -51,7 +51,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 
 	@Override
 	public boolean canRegister() {
-		return Bukkit.getPluginManager().getPlugin(getPlugin()) != null;
+		return Bukkit.getPluginManager().getPlugin(getRequiredPlugin()) != null;
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 	}
 
 	@Override
-	public String getPlugin() {
+	public String getRequiredPlugin() {
 		return "ASkyBlock";
 	}
 
@@ -83,7 +83,8 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 	}
 
 	@Override
-	public String onPlaceholderRequest(Player player, String identifier) {
+	public String onRequest(OfflinePlayer player, String identifier) {
+		Player p = (Player) player;
 		if (askyblock != null) {
 			final String[] parts = identifier.split("_");
 			
@@ -92,7 +93,7 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 				
 				if (key.equalsIgnoreCase("top")) {
 					if (parts.length == 1) {
-						final Integer playerTop = getPlayerTop(player);
+						final Integer playerTop = getPlayerTop(p);
 						
 						if (playerTop != null) {
 							return String.valueOf(playerTop);
@@ -139,12 +140,12 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 					
 					return String.valueOf(size);
 				} else if (identifier.equalsIgnoreCase("coop_islands")) {
-					final Set<Location> coopIslands = CoopPlay.getInstance().getCoopIslands(player);
+					final Set<Location> coopIslands = CoopPlay.getInstance().getCoopIslands(p);
 					final int size = coopIslands != null ? coopIslands.size() : 0; 
 					
 					return String.valueOf(size);
 				} else if (identifier.equalsIgnoreCase("owner")) {
-					final Location location = player.getLocation();
+					final Location location = p.getLocation();
 					final UUID ownerID = askyblock.getPlayers().getPlayerFromIslandLocation(location);
 					
 					if (ownerID != null) {
@@ -197,8 +198,8 @@ public class ASkyBlockExpansion extends PlaceholderExpansion implements Cacheabl
 								
 								int maxTeam = Settings.maxTeamSize;
 								
-								if (!player.hasPermission("askyblock.team.maxsize.*")) {
-									for (PermissionAttachmentInfo perms : player.getEffectivePermissions()) {
+								if (!p.hasPermission("askyblock.team.maxsize.*")) {
+									for (PermissionAttachmentInfo perms : p.getEffectivePermissions()) {
 										if (perms.getPermission().startsWith("askyblock.team.maxsize.")) {
 											final String[] components = perms.getPermission().split("askyblock.team.maxsize.");
 											
